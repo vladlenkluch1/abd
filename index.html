@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Простой квиз</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; }
+    .question { font-size: 1.2em; margin-bottom: 15px; }
+    .options button { display: block; margin: 8px 0; padding: 10px; width: 100%; font-size: 1em; }
+    .result { font-size: 1.3em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <div id="quiz-container">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <button id="next-btn" disabled>Следующий вопрос</button>
+  </div>
+
+  <div class="result" id="result" style="display:none;"></div>
+
+<script>
+  const questions = [
+    {
+      question: "Какой год основания Москвы?",
+      options: ["1147", "1247", "1347", "1447"],
+      answer: 0
+    },
+    {
+      question: "Кто написал 'Войну и мир'?",
+      options: ["Пушкин", "Толстой", "Достоевский", "Гоголь"],
+      answer: 1
+    },
+    {
+      question: "Столица Франции?",
+      options: ["Берлин", "Мадрид", "Париж", "Рим"],
+      answer: 2
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let score = 0;
+
+  const questionEl = document.getElementById('question');
+  const optionsEl = document.getElementById('options');
+  const nextBtn = document.getElementById('next-btn');
+  const resultEl = document.getElementById('result');
+
+  function loadQuestion() {
+    nextBtn.disabled = true;
+    const q = questions[currentQuestionIndex];
+    questionEl.textContent = q.question;
+    optionsEl.innerHTML = '';
+    q.options.forEach((option, index) => {
+      const btn = document.createElement('button');
+      btn.textContent = option;
+      btn.onclick = () => selectAnswer(index);
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(selectedIndex) {
+    const correctIndex = questions[currentQuestionIndex].answer;
+    if (selectedIndex === correctIndex) {
+      score++;
+    }
+    // Подсвечиваем правильный и выбранный варианты
+    Array.from(optionsEl.children).forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === correctIndex) btn.style.backgroundColor = 'lightgreen';
+      else if (i === selectedIndex) btn.style.backgroundColor = 'salmon';
+    });
+    nextBtn.disabled = false;
+  }
+
+  nextBtn.onclick = () => {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResult();
+    }
+  };
+
+  function showResult() {
+    quizContainer.style.display = 'none';
+    resultEl.style.display = 'block';
+    resultEl.textContent = `Игра окончена! Ваш результат: ${score} из ${questions.length}`;
+  }
+
+  const quizContainer = document.getElementById('quiz-container');
+  loadQuestion();
+
+</script>
+
+</body>
+</html>
