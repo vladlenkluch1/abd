@@ -1,98 +1,637 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Простой квиз</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; }
-    .question { font-size: 1.2em; margin-bottom: 15px; }
-    .options button { display: block; margin: 8px 0; padding: 10px; width: 100%; font-size: 1em; }
-    .result { font-size: 1.3em; margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тривиадор - Викторина</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            flex: 1;
+            font-weight: bold;
+            box-shadow: 0 8px 16px rgba(240, 147, 251, 0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .category {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.5;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .answer-btn {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #333;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .answer-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #fed6e3 0%, #a8edea 100%);
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(132, 250, 176, 0.4);
+        }
+
+        .answer-btn.wrong {
+            background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+            color: white;
+            transform: scale(0.98);
+            box-shadow: 0 5px 20px rgba(252, 70, 107, 0.4);
+        }
+
+        .feedback {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback.correct {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .feedback.error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.4);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(240, 147, 251, 0.5);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @media (max-width: 600px) {
+            .answers {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="game-container">
+        <h1 class="title">🎯 ТРИВИАДОР</h1>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
 
-  <div id="quiz-container">
-    <div class="question" id="question"></div>
-    <div class="options" id="options"></div>
-    <button id="next-btn" disabled>Следующий вопрос</button>
-  </div>
+        <div class="stats">
+            <div class="stat-item">
+                Вопрос: <span id="currentQuestion">1</span>/<span id="totalQuestions">0</span>
+            </div>
+            <div class="stat-item">
+                Правильных: <span id="correctCount">0</span>
+            </div>
+            <div class="stat-item">
+                Процент: <span id="percentage">0%</span>
+            </div>
+        </div>
 
-  <div class="result" id="result" style="display:none;"></div>
+        <div class="question-container" id="questionContainer">
+            <div class="category" id="category"></div>
+            <div class="question" id="questionText"></div>
+            <div class="answers" id="answersContainer"></div>
+            <div class="feedback" id="feedback"></div>
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">Следующий вопрос</button>
+        </div>
 
-<script>
-  const questions = [
-    {
-      question: "Какой год основания Москвы?",
-      options: ["1147", "1247", "1347", "1447"],
-      answer: 0
-    },
-    {
-      question: "Кто написал 'Войну и мир'?",
-      options: ["Пушкин", "Толстой", "Достоевский", "Гоголь"],
-      answer: 1
-    },
-    {
-      question: "Столица Франции?",
-      options: ["Берлин", "Мадрид", "Париж", "Рим"],
-      answer: 2
-    }
-  ];
+        <div class="game-over" id="gameOver" style="display: none;">
+            <div class="final-score" id="finalScore"></div>
+            <h2>Игра завершена!</h2>
+            <p>Вы ответили правильно на <span id="finalCorrect"></span> из <span id="finalTotal"></span> вопросов</p>
+            <button class="restart-btn" onclick="restartGame()">🔄 Начать заново</button>
+        </div>
+    </div>
 
-  let currentQuestionIndex = 0;
-  let score = 0;
+    <script>
+        // Структура данных для легкого добавления/удаления тем и вопросов
+        const gameData = {
+            "Философия": [
+                {
+                    question: "Кто является автором фразы 'Я мыслю, следовательно, я существую'?",
+                    answers: ["Рене Декарт", "Иммануил Кант", "Аристотель", "Платон"],
+                    correct: 0
+                },
+                {
+                    question: "Что изучает онтология?",
+                    answers: ["Мораль", "Бытие", "Познание", "Красоту"],
+                    correct: 1
+                },
+                {
+                    question: "Кто написал 'Критику чистого разума'?",
+                    answers: ["Гегель", "Шопенгауэр", "Кант", "Ницше"],
+                    correct: 2
+                },
+                {
+                    question: "Что означает термин 'майевтика' Сократа?",
+                    answers: ["Искусство спора", "Повивальное искусство", "Искусство красноречия", "Искусство познания"],
+                    correct: 1
+                },
+                {
+                    question: "Кто является основателем стоицизма?",
+                    answers: ["Эпикур", "Зенон Китийский", "Диоген", "Аристотель"],
+                    correct: 1
+                },
+                {
+                    question: "Что изучает гносеология?",
+                    answers: ["Бытие", "Познание", "Мораль", "Логику"],
+                    correct: 1
+                },
+                {
+                    question: "Кто автор концепции 'воли к власти'?",
+                    answers: ["Шопенгауэр", "Ницше", "Кант", "Гегель"],
+                    correct: 1
+                }
+            ],
+            "Друзья": [
+                {
+                    question: "Как зовут персонажа, которого играет Дженнифер Энистон?",
+                    answers: ["Моника", "Фиби", "Рейчел", "Эмили"],
+                    correct: 2
+                },
+                {
+                    question: "Какая профессия у Росса?",
+                    answers: ["Врач", "Палеонтолог", "Актер", "Повар"],
+                    correct: 1
+                },
+                {
+                    question: "Как зовут обезьянку Росса?",
+                    answers: ["Марсель", "Чарли", "Макс", "Джек"],
+                    correct: 0
+                },
+                {
+                    question: "В каком кафе часто собираются главные герои?",
+                    answers: ["Старбакс", "Централ Перк", "Кофе Хаус", "Френдс Кафе"],
+                    correct: 1
+                },
+                {
+                    question: "Кто из друзей работает массажистом?",
+                    answers: ["Рейчел", "Моника", "Фиби", "Чендлер"],
+                    correct: 2
+                },
+                {
+                    question: "Сколько сезонов в сериале 'Друзья'?",
+                    answers: ["8", "9", "10", "11"],
+                    correct: 2
+                },
+                {
+                    question: "Как зовут сына Росса?",
+                    answers: ["Бен", "Джек", "Майк", "Дэвид"],
+                    correct: 0
+                },
+                {
+                    question: "Какую песню поет Фиби в кафе?",
+                    answers: ["Мой кот воняет", "Два из них", "У меня есть мечта", "Вонючий кот"],
+                    correct: 0
+                }
+            ],
+            "Игра престолов": [
+                {
+                    question: "Какая фамилия у Джона Сноу?",
+                    answers: ["Старк", "Ланнистер", "Сноу", "Таргариен"],
+                    correct: 2
+                },
+                {
+                    question: "Как зовут трехглазого ворона?",
+                    answers: ["Бран Старк", "Джон Сноу", "Арья Старк", "Рикон Старк"],
+                    correct: 0
+                },
+                {
+                    question: "Столица Семи Королевств:",
+                    answers: ["Винтерфелл", "Королевская Гавань", "Ланниспорт", "Старомест"],
+                    correct: 1
+                },
+                {
+                    question: "Как называется материк, где происходят основные события?",
+                    answers: ["Эссос", "Вестерос", "Соториос", "Ультос"],
+                    correct: 1
+                },
+                {
+                    question: "Кто убил короля Джоффри?",
+                    answers: ["Тирион", "Олена Тирелл", "Серсея", "Санса"],
+                    correct: 1
+                },
+                {
+                    question: "Как зовут дракона Дейенерис с черной чешуей?",
+                    answers: ["Дрогон", "Рейгаль", "Визерион", "Бейлерион"],
+                    correct: 0
+                },
+                {
+                    question: "Девиз дома Старков:",
+                    answers: ["Огонь и кровь", "Зима близко", "Услышь мой рев", "Неуклонный как скала"],
+                    correct: 1
+                },
+                {
+                    question: "Кто такой Король Ночи?",
+                    answers: ["Первый Белый Ходок", "Король за Стеной", "Древний король", "Мертвый дракон"],
+                    correct: 0
+                }
+            ],
+            "Гарри Поттер": [
+                {
+                    question: "На какой платформе находится поезд в Хогвартс?",
+                    answers: ["9", "9¾", "10", "11"],
+                    correct: 1
+                },
+                {
+                    question: "Как зовут сову Гарри?",
+                    answers: ["Буклер", "Хедвиг", "Совуня", "Крукс"],
+                    correct: 1
+                },
+                {
+                    question: "В каком доме учился Гарри Поттер?",
+                    answers: ["Слизерин", "Пуффендуй", "Когтевран", "Гриффиндор"],
+                    correct: 3
+                },
+                {
+                    question: "Кто убил родителей Гарри?",
+                    answers: ["Снейп", "Волдеморт", "Беллатрикс", "Люциус Малфой"],
+                    correct: 1
+                },
+                {
+                    question: "Как называется игра на метлах в мире Гарри Поттера?",
+                    answers: ["Снитчбол", "Квиддич", "Блетчер", "Мячбол"],
+                    correct: 1
+                },
+                {
+                    question: "Сколько фильмов о Гарри Поттере?",
+                    answers: ["7", "8", "9", "10"],
+                    correct: 1
+                },
+                {
+                    question: "Как зовут директора Хогвартса?",
+                    answers: ["Снейп", "МакГонагалл", "Дамблдор", "Филч"],
+                    correct: 2
+                },
+                {
+                    question: "Какое заклинание убивает?",
+                    answers: ["Экспеллиармус", "Авада Кедавра", "Империус", "Ступефай"],
+                    correct: 1
+                }
+            ],
+            "Постучись в мою дверь": [
+                {
+                    question: "Как зовут главную героиню сериала?",
+                    answers: ["Эда", "Серкан", "Пирил", "Мелек"],
+                    correct: 0
+                },
+                {
+                    question: "Профессия Эды:",
+                    answers: ["Врач", "Ландшафтный архитектор", "Учитель", "Дизайнер"],
+                    correct: 1
+                },
+                {
+                    question: "Как зовут главного героя?",
+                    answers: ["Керем", "Серкан", "Альп", "Энгин"],
+                    correct: 1
+                },
+                {
+                    question: "Какие цветы любит Эда?",
+                    answers: ["Розы", "Тюльпаны", "Фиалки", "Лилии"],
+                    correct: 2
+                },
+                {
+                    question: "Кто такая Килич для Эды?",
+                    answers: ["Сестра", "Тетя", "Мама", "Бабушка"],
+                    correct: 1
+                },
+                {
+                    question: "В каком городе происходят события?",
+                    answers: ["Анкара", "Измир", "Стамбул", "Анталья"],
+                    correct: 2
+                },
+                {
+                    question: "Как зовут дочь Эды и Серкана?",
+                    answers: ["Килич", "Серкан", "Килич", "Эда"],
+                    correct: 0
+                },
+                {
+                    question: "Сколько лет прошло в сериале между первым и вторым сезоном?",
+                    answers: ["3 года", "4 года", "5 лет", "6 лет"],
+                    correct: 2
+                }
+            ]
+        };
 
-  const questionEl = document.getElementById('question');
-  const optionsEl = document.getElementById('options');
-  const nextBtn = document.getElementById('next-btn');
-  const resultEl = document.getElementById('result');
+        // Игровые переменные
+        let allQuestions = [];
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let answeredQuestions = 0;
 
-  function loadQuestion() {
-    nextBtn.disabled = true;
-    const q = questions[currentQuestionIndex];
-    questionEl.textContent = q.question;
-    optionsEl.innerHTML = '';
-    q.options.forEach((option, index) => {
-      const btn = document.createElement('button');
-      btn.textContent = option;
-      btn.onclick = () => selectAnswer(index);
-      optionsEl.appendChild(btn);
-    });
-  }
+        // Функция для создания массива всех вопросов
+        function createQuestionsList() {
+            allQuestions = [];
+            for (const category in gameData) {
+                gameData[category].forEach(questionData => {
+                    allQuestions.push({
+                        category: category,
+                        question: questionData.question,
+                        answers: questionData.answers,
+                        correct: questionData.correct
+                    });
+                });
+            }
+            // Перемешиваем вопросы
+            shuffleArray(allQuestions);
+        }
 
-  function selectAnswer(selectedIndex) {
-    const correctIndex = questions[currentQuestionIndex].answer;
-    if (selectedIndex === correctIndex) {
-      score++;
-    }
-    // Подсвечиваем правильный и выбранный варианты
-    Array.from(optionsEl.children).forEach((btn, i) => {
-      btn.disabled = true;
-      if (i === correctIndex) btn.style.backgroundColor = 'lightgreen';
-      else if (i === selectedIndex) btn.style.backgroundColor = 'salmon';
-    });
-    nextBtn.disabled = false;
-  }
+        // Функция перемешивания массива
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
-  nextBtn.onclick = () => {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < questions.length) {
-      loadQuestion();
-    } else {
-      showResult();
-    }
-  };
+        // Обновление прогресса
+        function updateProgress() {
+            const progress = (currentQuestionIndex / allQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
 
-  function showResult() {
-    quizContainer.style.display = 'none';
-    resultEl.style.display = 'block';
-    resultEl.textContent = `Игра окончена! Ваш результат: ${score} из ${questions.length}`;
-  }
+        // Обновление статистики
+        function updateStats() {
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = allQuestions.length;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            
+            const percentage = answeredQuestions > 0 ? Math.round((correctAnswers / answeredQuestions) * 100) : 0;
+            document.getElementById('percentage').textContent = percentage + '%';
+        }
 
-  const quizContainer = document.getElementById('quiz-container');
-  loadQuestion();
+        // Отображение вопроса
+        function displayQuestion() {
+            if (currentQuestionIndex >= allQuestions.length) {
+                endGame();
+                return;
+            }
 
-</script>
+            const questionData = allQuestions[currentQuestionIndex];
+            
+            document.getElementById('category').textContent = questionData.category;
+            document.getElementById('questionText').textContent = questionData.question;
+            
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+            
+            questionData.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer;
+                button.onclick = () => selectAnswer(index);
+                answersContainer.appendChild(button);
+            });
 
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            updateStats();
+            updateProgress();
+        }
+
+        // Обработка выбора ответа
+        function selectAnswer(selectedIndex) {
+            const questionData = allQuestions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.answer-btn');
+            const feedback = document.getElementById('feedback');
+            
+            // Отключаем все кнопки
+            buttons.forEach(btn => btn.onclick = null);
+            
+            answeredQuestions++;
+            
+            if (selectedIndex === questionData.correct) {
+                correctAnswers++;
+                buttons[selectedIndex].classList.add('correct');
+                feedback.textContent = '🎉 Правильно!';
+                feedback.className = 'feedback correct show';
+                
+                // Анимация успеха
+                document.querySelector('.game-container').classList.add('pulse');
+                setTimeout(() => {
+                    document.querySelector('.game-container').classList.remove('pulse');
+                }, 600);
+            } else {
+                buttons[selectedIndex].classList.add('wrong');
+                buttons[questionData.correct].classList.add('correct');
+                feedback.textContent = '❌ Ошибка';
+                feedback.className = 'feedback error show';
+            }
+            
+            document.getElementById('nextBtn').style.display = 'inline-block';
+            updateStats();
+        }
+
+        // Переход к следующему вопросу
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        // Завершение игры
+        function endGame() {
+            document.getElementById('questionContainer').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'block';
+            
+            const percentage = Math.round((correctAnswers / answeredQuestions) * 100);
+            document.getElementById('finalScore').textContent = percentage + '%';
+            document.getElementById('finalCorrect').textContent = correctAnswers;
+            document.getElementById('finalTotal').textContent = answeredQuestions;
+        }
+
+        // Перезапуск игры
+        function restartGame() {
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            answeredQuestions = 0;
+            
+            document.getElementById('questionContainer').style.display = 'block';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            createQuestionsList();
+            displayQuestion();
+        }
+
+        // Инициализация игры
+        function initGame() {
+            createQuestionsList();
+            displayQuestion();
+        }
+
+        // Запуск игры при загрузке страницы
+        window.onload = initGame;
+    </script>
 </body>
 </html>
